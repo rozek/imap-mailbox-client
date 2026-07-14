@@ -1,0 +1,43 @@
+{
+  "name": "imap-mailbox-client",
+  "version": "0.0.1",
+  "description": "Browser-side ESM client for imap-mailbox-proxy, loadable via a dynamic import() expression (e.g. from a WAT widget)",
+  "keywords": [
+    "imap",
+    "email",
+    "rest-api",
+    "browser",
+    "esm",
+    "wat"
+  ],
+  "author": "Andreas Rozek",
+  "homepage": "https://github.com/rozek/imap-mailbox-client#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rozek/imap-mailbox-client.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rozek/imap-mailbox-client/issues"
+  },
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/mailbox-client.js",
+  "module": "./dist/mailbox-client.js",
+  "types": "./dist/mailbox-client.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/mailbox-client.js",
+      "types": "./dist/mailbox-client.d.ts"
+    }
+  },
+  "files": [ "dist" ],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest",
+    "test:run": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "vitest": "^4.1.10"
+  }
+}
