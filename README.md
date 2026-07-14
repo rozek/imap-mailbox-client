@@ -46,7 +46,7 @@ await Mailbox.moveMessage(Message.UID, 'Archive')
 | `fetchFolders()` | lists all folders |
 | `fetchUnreadCount(Folder?)` | number of unread messages |
 | `fetchRecentMessages(Limit?, Folder?)` | recent messages (`MailboxMessage[]`: `UID`, `Subject`, `from`, `Date`, `isUnseen`) |
-| `fetchMessage(uid, folder?)` | one message in full (`MailboxMessageDetail`: adds `to`, `Text`, `HTML`, `Attachments`) |
+| `fetchMessage(UID, Folder?)` | one message in full (`MailboxMessageDetail`: adds `to`, `Text`, `HTML`, `Attachments`) |
 | `markAsRead(UID, Folder?)` | marks a message as read |
 | `moveMessage(UID, TargetFolder, Folder?)` | moves a message to another folder |
 

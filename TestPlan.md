@@ -18,7 +18,7 @@ Verify `MailboxClient`'s HTTP request building (URLs, headers, method, body), it
 | `X-API-Key` header on every request | `sends the API key header on every request` |
 | Default folder (`"INBOX"`) vs. per-call vs. constructor-level override | the three `fetchUnreadCount` tests |
 | Query-string construction (`fetchRecentMessages`, `fetchMessage`) | respective tests |
-| Server JSON (lowerCamelCase, fixed by `imap-mailbox-proxy`) is mapped onto the casing-compliant public `MailboxMessage`/`MailboxMessageDetail` shapes | `fetchRecentMessages`/`fetchMessage` tests assert the mapped result, not just the request |
+`fetchRecentMessages`/`fetchMessage` return the parsed `MailboxMessage`/`MailboxMessageDetail` shapes as sent by `imap-mailbox-proxy` (no client-side field mapping is needed - the server's JSON already uses this project's casing) | respective tests assert the parsed result, not just the request |
 | `POST` requests: method, path, JSON body, `Content-Type` header (`markAsRead`, `moveMessage`) | respective tests |
 | Non-OK HTTP responses surface a descriptive error | `throws a descriptive error when the response is not ok` |
 | Requests are aborted after `Timeout` | `aborts the request after Timeout elapses` |

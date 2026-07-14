@@ -37,58 +37,11 @@
   }
 
 //----------------------------------------------------------------------------//
-//                         Wire Shapes (server JSON)                          //
-//----------------------------------------------------------------------------//
-
-  interface WireMessage {
-    uid:number
-    subject:string
-    from:string
-    date:string
-    isUnseen:boolean
-  }
-
-  interface WireAttachment {
-    filename:string
-    contentType:string
-    size:number
-  }
-
-  interface WireMessageDetail {
-    uid:number
-    subject:string
-    from:string
-    to:string
-    date:string
-    text:string
-    html:string | undefined
-    attachments:WireAttachment[]
-  }
-
-  function toMailboxMessage (Wire:WireMessage):MailboxMessage {
-    const  { uid:UID, subject:Subject, from, date:Date, isUnseen } = Wire  
-    return { UID, Subject, from, Date, isUnseen }
-  }
-
-  function toMailboxAttachment (Wire:WireAttachment):MailboxAttachment {
-    const  { filename:Filename, contentType:ContentType, size:Size } = Wire
-    return { Filename, ContentType, Size }
-  }
-
-  function toMailboxMessageDetail (Wire:WireMessageDetail):MailboxMessageDetail {
-    const {
-      uid:UID, subject:Subject, from, to, date:Date, text:Text, html:HTML, attachments,
-    } = Wire
-
-    return {
-      UID, Subject, from, to, Date, Text, HTML,
-      Attachments:attachments.map(toMailboxAttachment),
-    }
-  }
-
-//----------------------------------------------------------------------------//
 //                               MailboxClient                                //
 //----------------------------------------------------------------------------//
+
+// imap-mailbox-proxy's REST JSON already matches the casing of the public
+// types above one-to-one, so no wire-to-public mapping step is needed here
 
   export class MailboxClient {
     readonly #BaseURL:string
@@ -116,14 +69,13 @@
 
     async fetchRecentMessages (Limit = 20,Folder = this.#Folder):Promise<MailboxMessage[]> {
       const Path   = `/messages?folder=${encodeURIComponent(Folder)}&limit=${Limit}`
-      const Result = await this.#request<{ messages:WireMessage[] }>('GET',Path)
-      return Result.messages.map(toMailboxMessage)
+      const Result = await this.#request<{ messages:MailboxMessage[] }>('GET',Path)
+      return Result.messages
     }
 
     async fetchMessage (UID:number,Folder = this.#Folder):Promise<MailboxMessageDetail> {
       const Path = `/messages/${UID}?folder=${encodeURIComponent(Folder)}`
-      const Wire = await this.#request<WireMessageDetail>('GET',Path)
-      return toMailboxMessageDetail(Wire)
+      return await this.#request<MailboxMessageDetail>('GET',Path)
     }
 
     async markAsRead (UID:number,Folder = this.#Folder):Promise<void> {

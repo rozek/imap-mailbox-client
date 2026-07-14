@@ -62,10 +62,10 @@ describe('MailboxClient',() => {
     expect(FetchMock).toHaveBeenCalledWith('https://proxy.example/unread-count?folder=Work',expect.anything())
   })
 
-  it('fetchRecentMessages builds the correct query string and maps wire fields to public casing',async () => {
+  it('fetchRecentMessages builds the correct query string and returns the parsed messages',async () => {
     FetchMock.mockResolvedValue(JSONResponse({
       messages:[
-        { uid:1, subject:'Hi', from:'a@example.com', date:'2026-01-01T00:00:00.000Z', isUnseen:true },
+        { UID:1, Subject:'Hi', from:'a@example.com', Date:'2026-01-01T00:00:00.000Z', isUnseen:true },
       ],
     }))
     const Mailbox = new MailboxClient({ BaseURL:'https://proxy.example', APIKey:'key' })
@@ -78,16 +78,16 @@ describe('MailboxClient',() => {
     ])
   })
 
-  it('fetchMessage builds the correct path and maps wire fields to public casing',async () => {
+  it('fetchMessage builds the correct path and returns the parsed message',async () => {
     FetchMock.mockResolvedValue(JSONResponse({
-      uid:42,
-      subject:'Hi',
+      UID:42,
+      Subject:'Hi',
       from:'a@example.com',
       to:'b@example.com',
-      date:'2026-01-01T00:00:00.000Z',
-      text:'body',
-      html:'<p>body</p>',
-      attachments:[ { filename:'file.pdf', contentType:'application/pdf', size:1234 } ],
+      Date:'2026-01-01T00:00:00.000Z',
+      Text:'body',
+      HTML:'<p>body</p>',
+      Attachments:[ { Filename:'file.pdf', ContentType:'application/pdf', Size:1234 } ],
     }))
     const Mailbox = new MailboxClient({ BaseURL:'https://proxy.example', APIKey:'key' })
 
