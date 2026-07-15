@@ -40,7 +40,7 @@ await Mailbox.setFlagged(Message.UID, true)
 await Mailbox.moveMessage(Message.UID, 'Archive')
 
 // walk forward through new mail without polling on a fixed limit
-const NewMessages = await Mailbox.fetchMessagesSince(Messages[0].UID)
+const newMessages = await Mailbox.fetchMessagesSince(Messages[0].UID)
 ```
 
 ## API
