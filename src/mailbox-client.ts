@@ -4,6 +4,11 @@
 *                                                                              *
 *******************************************************************************/
 
+  export interface MailboxFolder {
+    Path:string
+    specialUse:string | undefined  // e.g. "\Trash", "\Sent", "\Drafts", "\Junk", "\Archive" - server-reported, not guessed
+  }
+
   export interface MailboxMessage {
     UID:number
     Subject:string
@@ -56,8 +61,8 @@
       this.#TimeoutMS = Options.Timeout ?? 8000
     }
 
-    async fetchFolders ():Promise<string[]> {
-      const Result = await this.#request<{ folders:string[] }>('GET','/folders')
+    async fetchFolders ():Promise<MailboxFolder[]> {
+      const Result = await this.#request<{ folders:MailboxFolder[] }>('GET','/folders')
       return Result.folders
     }
 

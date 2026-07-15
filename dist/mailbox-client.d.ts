@@ -3,6 +3,10 @@
 *                             Mailbox Proxy Client                             *
 *                                                                              *
 *******************************************************************************/
+export interface MailboxFolder {
+    Path: string;
+    specialUse: string | undefined;
+}
 export interface MailboxMessage {
     UID: number;
     Subject: string;
@@ -34,7 +38,7 @@ export interface MailboxClientOptions {
 export declare class MailboxClient {
     #private;
     constructor(Options: MailboxClientOptions);
-    fetchFolders(): Promise<string[]>;
+    fetchFolders(): Promise<MailboxFolder[]>;
     fetchUnreadCount(Folder?: string): Promise<number>;
     fetchRecentMessages(Limit?: number, Folder?: string): Promise<MailboxMessage[]>;
     fetchMessage(UID: number, Folder?: string): Promise<MailboxMessageDetail>;

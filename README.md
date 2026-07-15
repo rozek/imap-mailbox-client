@@ -43,7 +43,7 @@ await Mailbox.moveMessage(Message.UID, 'Archive')
 
 | Method | Description |
 |---|---|
-| `fetchFolders()` | lists all folders |
+| `fetchFolders()` | lists all folders (`MailboxFolder[]`: `Path`, `specialUse` - the server-reported IMAP hint, e.g. `\Trash`, `\Sent`, where known) |
 | `fetchUnreadCount(Folder?)` | number of unread messages |
 | `fetchRecentMessages(Limit?, Folder?)` | recent messages (`MailboxMessage[]`: `UID`, `Subject`, `from`, `Date`, `isUnseen`) |
 | `fetchMessage(UID, Folder?)` | one message in full (`MailboxMessageDetail`: adds `to`, `Text`, `HTML`, `Attachments`) |

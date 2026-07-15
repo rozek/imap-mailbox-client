@@ -38,6 +38,21 @@ describe('MailboxClient',() => {
     expect(Options.headers['X-API-Key']).toBe('secret-key')
   })
 
+  it('fetchFolders returns each folder with its special-use hint',async () => {
+    FetchMock.mockResolvedValue(JSONResponse({
+      folders:[
+        { Path:'INBOX' },
+        { Path:'Gelöscht', specialUse:'\\Trash' },
+      ],
+    }))
+    const Mailbox = new MailboxClient({ BaseURL:'https://proxy.example', APIKey:'key' })
+
+    await expect(Mailbox.fetchFolders()).resolves.toEqual([
+      { Path:'INBOX' },
+      { Path:'Gelöscht', specialUse:'\\Trash' },
+    ])
+  })
+
   it('fetchUnreadCount defaults to the "INBOX" folder',async () => {
     FetchMock.mockResolvedValue(JSONResponse({ count:3 }))
     const Mailbox = new MailboxClient({ BaseURL:'https://proxy.example', APIKey:'key' })
