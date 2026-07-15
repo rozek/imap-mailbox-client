@@ -9,12 +9,22 @@
     specialUse:string | undefined  // e.g. "\Trash", "\Sent", "\Drafts", "\Junk", "\Archive" - server-reported, not guessed
   }
 
+  export interface MailboxFolderCounts {
+    Total:number
+    Unread:number
+  }
+
+  export interface MailboxFolderCountsEntry extends MailboxFolderCounts {
+    Path:string
+  }
+
   export interface MailboxMessage {
     UID:number
     Subject:string
     from:string
     Date:string
     isUnseen:boolean
+    isFlagged:boolean
   }
 
   export interface MailboxAttachment {
@@ -72,8 +82,32 @@
       return Result.count
     }
 
-    async fetchRecentMessages (Limit = 20,Folder = this.#Folder):Promise<MailboxMessage[]> {
-      const Path   = `/messages?folder=${encodeURIComponent(Folder)}&limit=${Limit}`
+    async fetchFolderCounts (Folder = this.#Folder):Promise<MailboxFolderCounts> {
+      const Path = `/folder-counts?folder=${encodeURIComponent(Folder)}`
+      return await this.#request<MailboxFolderCounts>('GET',Path)
+    }
+
+    async fetchAllFolderCounts (Folders?:string[]):Promise<MailboxFolderCountsEntry[]> {
+      const Path   = Folders ? `/all-folder-counts?folders=${Folders.map(encodeURIComponent).join(',')}` : '/all-folder-counts'
+      const Result = await this.#request<{ counts:MailboxFolderCountsEntry[] }>('GET',Path)
+      return Result.counts
+    }
+
+    async fetchRecentMessages (Limit = 20,Folder = this.#Folder,BeforeUID?:number,FlaggedOnly?:boolean):Promise<MailboxMessage[]> {
+      const Path = (
+        `/messages?folder=${encodeURIComponent(Folder)}&limit=${Limit}` +
+        (BeforeUID != null ? `&beforeUID=${BeforeUID}` : '') +
+        (FlaggedOnly ? '&flaggedOnly=true' : '')
+      )
+      const Result = await this.#request<{ messages:MailboxMessage[] }>('GET',Path)
+      return Result.messages
+    }
+
+    async fetchMessagesSince (SinceUID:number,Limit = 20,Folder = this.#Folder,FlaggedOnly?:boolean):Promise<MailboxMessage[]> {
+      const Path = (
+        `/messages/since?folder=${encodeURIComponent(Folder)}&sinceUID=${SinceUID}&limit=${Limit}` +
+        (FlaggedOnly ? '&flaggedOnly=true' : '')
+      )
       const Result = await this.#request<{ messages:MailboxMessage[] }>('GET',Path)
       return Result.messages
     }
@@ -86,6 +120,11 @@
     async markAsRead (UID:number,Folder = this.#Folder):Promise<void> {
       const Path = `/messages/${UID}/seen?folder=${encodeURIComponent(Folder)}`
       await this.#request('POST',Path)
+    }
+
+    async setFlagged (UID:number,Flagged:boolean,Folder = this.#Folder):Promise<void> {
+      const Path = `/messages/${UID}/flagged?folder=${encodeURIComponent(Folder)}`
+      await this.#request('POST',Path,{ flagged:Flagged })
     }
 
     async moveMessage (UID:number,TargetFolder:string,Folder = this.#Folder):Promise<void> {

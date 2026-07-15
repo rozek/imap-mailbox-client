@@ -53,6 +53,42 @@ describe('MailboxClient',() => {
     ])
   })
 
+  it('fetchFolderCounts returns the total and unread count',async () => {
+    FetchMock.mockResolvedValue(JSONResponse({ Total:20, Unread:4 }))
+    const Mailbox = new MailboxClient({ BaseURL:'https://proxy.example', APIKey:'key' })
+
+    await expect(Mailbox.fetchFolderCounts()).resolves.toEqual({ Total:20, Unread:4 })
+    expect(FetchMock).toHaveBeenCalledWith('https://proxy.example/folder-counts?folder=INBOX',expect.anything())
+  })
+
+  it('fetchFolderCounts honours an explicit folder argument',async () => {
+    FetchMock.mockResolvedValue(JSONResponse({ Total:0, Unread:0 }))
+    const Mailbox = new MailboxClient({ BaseURL:'https://proxy.example', APIKey:'key' })
+
+    await Mailbox.fetchFolderCounts('Archive')
+    expect(FetchMock).toHaveBeenCalledWith('https://proxy.example/folder-counts?folder=Archive',expect.anything())
+  })
+
+  it('fetchAllFolderCounts reports on every folder when none are given',async () => {
+    FetchMock.mockResolvedValue(JSONResponse({
+      counts:[ { Path:'INBOX', Total:20, Unread:4 } ],
+    }))
+    const Mailbox = new MailboxClient({ BaseURL:'https://proxy.example', APIKey:'key' })
+
+    await expect(Mailbox.fetchAllFolderCounts()).resolves.toEqual([
+      { Path:'INBOX', Total:20, Unread:4 },
+    ])
+    expect(FetchMock).toHaveBeenCalledWith('https://proxy.example/all-folder-counts',expect.anything())
+  })
+
+  it('fetchAllFolderCounts honours an explicit folder list',async () => {
+    FetchMock.mockResolvedValue(JSONResponse({ counts:[] }))
+    const Mailbox = new MailboxClient({ BaseURL:'https://proxy.example', APIKey:'key' })
+
+    await Mailbox.fetchAllFolderCounts([ 'INBOX','Archive' ])
+    expect(FetchMock).toHaveBeenCalledWith('https://proxy.example/all-folder-counts?folders=INBOX,Archive',expect.anything())
+  })
+
   it('fetchUnreadCount defaults to the "INBOX" folder',async () => {
     FetchMock.mockResolvedValue(JSONResponse({ count:3 }))
     const Mailbox = new MailboxClient({ BaseURL:'https://proxy.example', APIKey:'key' })
@@ -93,6 +129,38 @@ describe('MailboxClient',() => {
     ])
   })
 
+  it('fetchRecentMessages forwards beforeUID and flaggedOnly',async () => {
+    FetchMock.mockResolvedValue(JSONResponse({ messages:[] }))
+    const Mailbox = new MailboxClient({ BaseURL:'https://proxy.example', APIKey:'key' })
+
+    await Mailbox.fetchRecentMessages(5,'Archive',42,true)
+    expect(FetchMock).toHaveBeenCalledWith('https://proxy.example/messages?folder=Archive&limit=5&beforeUID=42&flaggedOnly=true',expect.anything())
+  })
+
+  it('fetchMessagesSince builds the correct query string and returns the parsed messages',async () => {
+    FetchMock.mockResolvedValue(JSONResponse({
+      messages:[
+        { UID:10, Subject:'New', from:'a@example.com', Date:'2026-01-10T00:00:00.000Z', isUnseen:true, isFlagged:false },
+      ],
+    }))
+    const Mailbox = new MailboxClient({ BaseURL:'https://proxy.example', APIKey:'key' })
+
+    const Messages = await Mailbox.fetchMessagesSince(9,5,'Archive',true)
+
+    expect(FetchMock).toHaveBeenCalledWith('https://proxy.example/messages/since?folder=Archive&sinceUID=9&limit=5&flaggedOnly=true',expect.anything())
+    expect(Messages).toEqual([
+      { UID:10, Subject:'New', from:'a@example.com', Date:'2026-01-10T00:00:00.000Z', isUnseen:true, isFlagged:false },
+    ])
+  })
+
+  it('fetchMessagesSince defaults to the "INBOX" folder and no flag filter',async () => {
+    FetchMock.mockResolvedValue(JSONResponse({ messages:[] }))
+    const Mailbox = new MailboxClient({ BaseURL:'https://proxy.example', APIKey:'key' })
+
+    await Mailbox.fetchMessagesSince(9)
+    expect(FetchMock).toHaveBeenCalledWith('https://proxy.example/messages/since?folder=INBOX&sinceUID=9&limit=20',expect.anything())
+  })
+
   it('fetchMessage builds the correct path and returns the parsed message',async () => {
     FetchMock.mockResolvedValue(JSONResponse({
       UID:42,
@@ -130,6 +198,18 @@ describe('MailboxClient',() => {
     const [ URL,Options ] = FetchMock.mock.calls[0]
     expect(URL).toBe('https://proxy.example/messages/42/seen?folder=INBOX')
     expect(Options.method).toBe('POST')
+  })
+
+  it('setFlagged posts the flagged state to the flagged endpoint',async () => {
+    FetchMock.mockResolvedValue(JSONResponse({ ok:true }))
+    const Mailbox = new MailboxClient({ BaseURL:'https://proxy.example', APIKey:'key' })
+
+    await Mailbox.setFlagged(42,true)
+
+    const [ URL,Options ] = FetchMock.mock.calls[0]
+    expect(URL).toBe('https://proxy.example/messages/42/flagged?folder=INBOX')
+    expect(Options.method).toBe('POST')
+    expect(JSON.parse(Options.body)).toEqual({ flagged:true })
   })
 
   it('moveMessage posts the target folder in the body',async () => {

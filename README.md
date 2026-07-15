@@ -36,7 +36,11 @@ const Messages    = await Mailbox.fetchRecentMessages(20)
 const Message     = await Mailbox.fetchMessage(Messages[0].UID)
 
 await Mailbox.markAsRead(Message.UID)
+await Mailbox.setFlagged(Message.UID, true)
 await Mailbox.moveMessage(Message.UID, 'Archive')
+
+// walk forward through new mail without polling on a fixed limit
+const NewMessages = await Mailbox.fetchMessagesSince(Messages[0].UID)
 ```
 
 ## API
@@ -45,9 +49,13 @@ await Mailbox.moveMessage(Message.UID, 'Archive')
 |---|---|
 | `fetchFolders()` | lists all folders (`MailboxFolder[]`: `Path`, `specialUse` - the server-reported IMAP hint, e.g. `\Trash`, `\Sent`, where known) |
 | `fetchUnreadCount(Folder?)` | number of unread messages |
-| `fetchRecentMessages(Limit?, Folder?)` | recent messages (`MailboxMessage[]`: `UID`, `Subject`, `from`, `Date`, `isUnseen`) |
+| `fetchFolderCounts(Folder?)` | how many messages a folder has in total and how many are unread (`MailboxFolderCounts`: `Total`, `Unread`) |
+| `fetchAllFolderCounts(Folders?)` | folder counts for several folders at once (`MailboxFolderCountsEntry[]`: `Path`, `Total`, `Unread`); omit `Folders` to report on every folder in the mailbox |
+| `fetchRecentMessages(Limit?, Folder?, BeforeUID?, FlaggedOnly?)` | recent messages, newest first (`MailboxMessage[]`: `UID`, `Subject`, `from`, `Date`, `isUnseen`, `isFlagged`); `BeforeUID` pages further back, `FlaggedOnly` restricts to `\Flagged` messages |
+| `fetchMessagesSince(SinceUID, Limit?, Folder?, FlaggedOnly?)` | messages newer than `SinceUID`, oldest first, capped at `Limit` - use the highest `UID` from the previous call as the next `SinceUID` to walk forward through all new mail without skipping any |
 | `fetchMessage(UID, Folder?)` | one message in full (`MailboxMessageDetail`: adds `to`, `Text`, `HTML`, `Attachments`) |
 | `markAsRead(UID, Folder?)` | marks a message as read |
+| `setFlagged(UID, Flagged, Folder?)` | sets or clears the `\Flagged` flag (the "starred"/"important" marker) |
 | `moveMessage(UID, TargetFolder, Folder?)` | moves a message to another folder |
 
 Every `Folder` parameter defaults to the `Folder` given in the constructor options (itself defaulting to `"INBOX"`).

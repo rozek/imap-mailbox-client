@@ -17,9 +17,9 @@ Verify `MailboxClient`'s HTTP request building (URLs, headers, method, body), it
 | `BaseURL` trailing-slash normalisation | `strips a trailing slash from BaseURL` |
 | `X-API-Key` header on every request | `sends the API key header on every request` |
 | Default folder (`"INBOX"`) vs. per-call vs. constructor-level override | the three `fetchUnreadCount` tests |
-| Query-string construction (`fetchRecentMessages`, `fetchMessage`) | respective tests |
-| `fetchFolders`/`fetchRecentMessages`/`fetchMessage` return the parsed `MailboxFolder`/`MailboxMessage`/`MailboxMessageDetail` shapes as sent by `imap-mailbox-proxy` (no client-side field mapping is needed - the server's JSON already uses this project's casing) | respective tests assert the parsed result, not just the request |
-| `POST` requests: method, path, JSON body, `Content-Type` header (`markAsRead`, `moveMessage`) | respective tests |
+| Query-string construction, incl. optional `beforeUID`/`flaggedOnly`/`sinceUID`/`folders` params (`fetchFolderCounts`, `fetchAllFolderCounts`, `fetchRecentMessages`, `fetchMessagesSince`, `fetchMessage`) | respective tests |
+| `fetchFolders`/`fetchFolderCounts`/`fetchAllFolderCounts`/`fetchRecentMessages`/`fetchMessagesSince`/`fetchMessage` return the parsed `MailboxFolder`/`MailboxFolderCounts`/`MailboxFolderCountsEntry`/`MailboxMessage`/`MailboxMessageDetail` shapes as sent by `imap-mailbox-proxy` (no client-side field mapping is needed - the server's JSON already uses this project's casing) | respective tests assert the parsed result, not just the request |
+| `POST` requests: method, path, JSON body, `Content-Type` header (`markAsRead`, `setFlagged`, `moveMessage`) | respective tests |
 | Non-OK HTTP responses surface a descriptive error | `throws a descriptive error when the response is not ok` |
 | Requests are aborted after `Timeout` | `aborts the request after Timeout elapses` |
 
@@ -37,4 +37,4 @@ npm run test:run  # single run
 
 ## Current coverage
 
-12 tests, all passing.
+20 tests, all passing.

@@ -28,8 +28,25 @@ export class MailboxClient {
         const Result = await this.#request('GET', Path);
         return Result.count;
     }
-    async fetchRecentMessages(Limit = 20, Folder = this.#Folder) {
-        const Path = `/messages?folder=${encodeURIComponent(Folder)}&limit=${Limit}`;
+    async fetchFolderCounts(Folder = this.#Folder) {
+        const Path = `/folder-counts?folder=${encodeURIComponent(Folder)}`;
+        return await this.#request('GET', Path);
+    }
+    async fetchAllFolderCounts(Folders) {
+        const Path = Folders ? `/all-folder-counts?folders=${Folders.map(encodeURIComponent).join(',')}` : '/all-folder-counts';
+        const Result = await this.#request('GET', Path);
+        return Result.counts;
+    }
+    async fetchRecentMessages(Limit = 20, Folder = this.#Folder, BeforeUID, FlaggedOnly) {
+        const Path = (`/messages?folder=${encodeURIComponent(Folder)}&limit=${Limit}` +
+            (BeforeUID != null ? `&beforeUID=${BeforeUID}` : '') +
+            (FlaggedOnly ? '&flaggedOnly=true' : ''));
+        const Result = await this.#request('GET', Path);
+        return Result.messages;
+    }
+    async fetchMessagesSince(SinceUID, Limit = 20, Folder = this.#Folder, FlaggedOnly) {
+        const Path = (`/messages/since?folder=${encodeURIComponent(Folder)}&sinceUID=${SinceUID}&limit=${Limit}` +
+            (FlaggedOnly ? '&flaggedOnly=true' : ''));
         const Result = await this.#request('GET', Path);
         return Result.messages;
     }
@@ -40,6 +57,10 @@ export class MailboxClient {
     async markAsRead(UID, Folder = this.#Folder) {
         const Path = `/messages/${UID}/seen?folder=${encodeURIComponent(Folder)}`;
         await this.#request('POST', Path);
+    }
+    async setFlagged(UID, Flagged, Folder = this.#Folder) {
+        const Path = `/messages/${UID}/flagged?folder=${encodeURIComponent(Folder)}`;
+        await this.#request('POST', Path, { flagged: Flagged });
     }
     async moveMessage(UID, TargetFolder, Folder = this.#Folder) {
         const Path = `/messages/${UID}/move?folder=${encodeURIComponent(Folder)}`;
